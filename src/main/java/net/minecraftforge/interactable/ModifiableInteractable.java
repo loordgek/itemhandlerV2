@@ -88,13 +88,13 @@ public abstract class ModifiableInteractable<T>  extends Interactable<T> impleme
         }
 
         @Override
-        public final void cancel() {
+        public void cancel() {
             if (modifiableInteractable.isActiveTransaction(this))
                 modifiableInteractable.activeTransaction = null;
         }
 
         @Override
-        public final void commit() throws TransactionNotValidException {
+        public void commit() throws TransactionNotValidException {
             if (!modifiableInteractable.isActiveTransaction(this))
                 throw new TransactionNotValidException(modifiableInteractable, this);
 

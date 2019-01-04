@@ -1,5 +1,7 @@
 package net.minecraftforge.interactable.itemhandler;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.interactable.ModifiableInteractable;
 import net.minecraftforge.interactable.api.InteractableOperationResult;
@@ -7,7 +9,6 @@ import net.minecraftforge.interactable.api.*;
 import net.minecraftforge.interactable.itemhandler.api.IItemHandlerTransaction;
 import net.minecraftforge.interactable.itemhandler.api.IModifiableItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.util.ListWithFixedSize;
 
 import java.util.Collection;
 
@@ -77,10 +78,30 @@ public class ModifiableItemHandler extends ModifiableInteractable<ItemStack> imp
     public class ItemHandlerTransaction extends AbstractTransaction<ItemStack> implements IItemHandlerTransaction {
 
         private final ModifiableItemHandler itemHandler;
+        private Int2ObjectMap<ItemStack> pendingStacks = new Int2ObjectOpenHashMap<>();
 
         public ItemHandlerTransaction(ModifiableItemHandler itemHandler) {
             super(itemHandler);
             this.itemHandler = itemHandler;
+        }
+
+        @Override
+        public ItemStack get(int slot) {
+            return pendingStacks.containsKey(slot) ? pendingStacks.get(slot) : super.get(slot);
+        }
+
+        @Override
+        public void commit() throws TransactionNotValidException {
+            for (Int2ObjectMap.Entry<ItemStack> objectSet : pendingStacks.int2ObjectEntrySet()){
+                interactable.set(objectSet.getIntKey(), objectSet.getValue());
+            }
+            super.commit();
+        }
+
+        @Override
+        public void cancel() {
+            pendingStacks.clear();
+            super.cancel();
         }
 
         @Override
@@ -89,16 +110,14 @@ public class ModifiableItemHandler extends ModifiableInteractable<ItemStack> imp
             if (toInsert.isEmpty() || slot < 0 || slot >= size())
                 return InteractableOperationResult.invalid();
 
-            final ItemStack stack = get(slot);
-            final ItemStack previouslyInSlot = stack.copy();
-            final boolean stackable = ItemHandlerHelper.canItemStacksStack(stack, toInsert);
+            final ItemStack stackInSlot = get(slot);
 
             //None stackable stacks are conflicting
-            if (!stackable)
+            if (!ItemHandlerHelper.canItemStacksStack(stackInSlot, toInsert))
                 return InteractableOperationResult.conflicting();
 
-            final ItemStack insertedStack = stack.copy();
-            insertedStack.setCount(Math.min(toInsert.getMaxStackSize(), (stack.getCount() + toInsert.getCount())));
+            final ItemStack insertedStack = stackInSlot.copy();
+            insertedStack.setCount(Math.min(toInsert.getMaxStackSize(), (stackInSlot.getCount() + toInsert.getCount())));
 
             ItemStack leftOver = toInsert.copy();
             leftOver.setCount(toInsert.getCount() - insertedStack.getCount());
@@ -108,10 +127,10 @@ public class ModifiableItemHandler extends ModifiableInteractable<ItemStack> imp
             if (leftOver.getCount() == toInsert.getCount())
                 return InteractableOperationResult.failed();
 
-            this.interactable.set(slot, insertedStack);
+            this.pendingStacks.put(slot, insertedStack);
             super.onSlotInteracted(slot);
 
-            return InteractableOperationResult.success(leftOver, previouslyInSlot);
+            return InteractableOperationResult.success(leftOver, super.get(slot));
         }
 
         @Override
@@ -159,16 +178,18 @@ public class ModifiableItemHandler extends ModifiableInteractable<ItemStack> imp
             if (stack.isEmpty())
                 return InteractableOperationResult.failed();
 
-            final ItemStack extracted = stack.copy();
-            extracted.setCount(Math.min(extracted.getCount(), amount));
+            int toExtract = Math.min(stack.getCount(), amount);
 
-            ItemStack remaining = stack.copy();
-            remaining.setCount(remaining.getCount() - extracted.getCount());
-            if (remaining.getCount() <= 0)
-                remaining = ItemStack.EMPTY;
+            if (toExtract == 0){
+                this.pendingStacks.put(slot, ItemStack.EMPTY);
+                return InteractableOperationResult.success(super.get(slot), ItemStack.EMPTY);
+            }
 
-            //Clone the stack again since remaining is also a secondary output.
-            this.interactable.set(slot, remaining.copy());
+            final ItemStack extracted = stack.splitStack(toExtract);
+
+            ItemStack remaining = stack.splitStack(stack.getCount() - toExtract);
+
+            this.pendingStacks.put(slot, remaining);
             super.onSlotInteracted(slot);
 
             return InteractableOperationResult.success(extracted, remaining);

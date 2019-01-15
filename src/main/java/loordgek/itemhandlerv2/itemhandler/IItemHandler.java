@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack;
 import javax.annotation.Nonnull;
 import java.util.Iterator;
 
-public interface IItemHandler extends Iterable<ItemStack>{
+public interface IItemHandler extends Iterable<ItemStack> {
 
     int size();
 
@@ -17,9 +17,11 @@ public interface IItemHandler extends Iterable<ItemStack>{
     int getSlotLimit(int slot);
 
     @Override
+    @Nonnull
     default Iterator<ItemStack> iterator() {
         return new Iterator<ItemStack>() {
             int index;
+
             @Override
             public boolean hasNext() {
                 return index < size();
@@ -34,10 +36,13 @@ public interface IItemHandler extends Iterable<ItemStack>{
         };
     }
 
-    ITransaction insert(int slot, ItemStack stack, boolean force);
+    ITransaction setStack(int slot, ItemStack stack);
+
+    ITransaction insert(int slot, ItemStack stack);
 
     ITransaction insert(ItemStack stack);
 
     ITransaction extract(int slot, int amount);
 
-    ITransaction extract(IStackFilter filter, int amount);}
+    ITransaction extract(IStackFilter filter, int amount);
+}

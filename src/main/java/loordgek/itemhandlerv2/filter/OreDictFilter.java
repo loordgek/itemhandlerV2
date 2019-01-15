@@ -19,6 +19,6 @@ public class OreDictFilter implements IStackFilter {
 
     @Override
     public NonNullList<ItemStack> getExamples() {
-       return OreDictionary.getOres(oreName);
+        return OreDictionary.getOres(oreName);
     }
 }

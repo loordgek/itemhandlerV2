@@ -16,9 +16,8 @@ public class FluidFilter implements IStackFilter {
     @Override
     public boolean test(ItemStack stack) {
         FluidStack fluidStack = FluidUtil.getFluidContained(stack);
-        if (fluidStack != null){
-            switch (this.matchingStrategy)
-            {
+        if (fluidStack != null) {
+            switch (this.matchingStrategy) {
                 case EXCEEDED:
                     return fluidStack.isFluidEqual(fluidStackToTest) && fluidStack.amount <= fluidStackToTest.amount;
 
@@ -45,7 +44,6 @@ public class FluidFilter implements IStackFilter {
          * It will try matching those containers that can drain the specified amount of
          * fluid out. Example: if the FluidIngredient asks for 500 mB water, a vanilla bucket
          * will be matched.
-         *
          */
         EXCEEDED,
     }

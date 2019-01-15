@@ -6,27 +6,166 @@ import javax.annotation.Nonnull;
 
 public interface ITransaction {
 
+    ITransaction INVALID = new ITransaction() {
+        @Override
+        @Nonnull
+        public ItemStack getResult() {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        @Nonnull
+        public ItemStack getResultUnsafe() {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getResultAmount() {
+            return 0;
+        }
+
+        @Override
+        @Nonnull
+        public ITransaction cancel() {
+            return this;
+        }
+
+        @Override
+        @Nonnull
+        public ITransaction confirm() {
+            return this;
+        }
+
+        @Override
+        public boolean isValid() {
+            return false;
+        }
+
+        @Nonnull
+        @Override
+        public Type getType() {
+            return Type.INVALID;
+        }
+    };
+    ITransaction FAILURE = new ITransaction() {
+        @Override
+        @Nonnull
+        public ItemStack getResult() {
+            return ItemStack.EMPTY;
+        }
+
+        @Nonnull
+        @Override
+        public ItemStack getResultUnsafe() {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getResultAmount() {
+            return 0;
+        }
+
+        @Override
+        @Nonnull
+        public ITransaction cancel() {
+            return this;
+        }
+
+        @Override
+        @Nonnull
+        public ITransaction confirm() {
+            return this;
+        }
+
+        @Override
+        public boolean isValid() {
+            return false;
+        }
+
+        @Nonnull
+        @Override
+        public Type getType() {
+            return Type.FAILURE;
+        }
+    };
+    ITransaction UNDEFINED = new ITransaction() {
+        @Override
+        @Nonnull
+        public ItemStack getResult() {
+            return ItemStack.EMPTY;
+        }
+
+        @Nonnull
+        @Override
+        public ItemStack getResultUnsafe() {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getResultAmount() {
+            return 0;
+        }
+
+        @Override
+        @Nonnull
+        public ITransaction cancel() {
+            return this;
+        }
+
+        @Override
+        @Nonnull
+        public ITransaction confirm() {
+            return this;
+        }
+
+        @Override
+        public boolean isValid() {
+            return false;
+        }
+
+        @Nonnull
+        @Override
+        public Type getType() {
+            return Type.UNDEFINED;
+        }
+    };
+
     /**
      * Gets the resulting {@link ItemStack} of this transaction.
      * <p/>
      * When inserting, this is the leftover stack.<br/>
      * When extracting, this is the stack that was extracted.
      */
+    @Nonnull
     ItemStack getResult();
 
     /**
-     * Gets the secondary resulting {@link ItemStack} of this transaction.
+     * Gets the resulting {@link ItemStack} of this transaction.
+     * <p>
+     * DO NOT MODIFY THE ItemStack
+     * the size of the stack is not accurate use getResultAmount to get the amount
+     * <p>
      * <p/>
-     * When inserting, this is the inserted stack.<br/>
-     * When extracting, this is the stack that is left in the slot.
+     * When inserting, this is the leftover stack.<br/>
+     * When extracting, this is the stack that was extracted.
      */
-    ItemStack getOther();
+    @Nonnull
+    ItemStack getResultUnsafe();
+
+    /**
+     * Gets the resulting amount of this transaction.
+     * <p/>
+     * When inserting, this is the leftover amount.<br/>
+     * When extracting, this is the amount that was extracted.
+     */
+    int getResultAmount();
 
     /**
      * Cancels this transaction and invalidates it and all the ones issued after it.<br/>
      * If another transaction's cancellation has invalidated this one, an {@link IllegalStateException} will be thrown.
      */
-    ItemStack cancel();
+    @Nonnull
+    ITransaction cancel();
 
     /**
      * Confirms this transaction and invalidates it.<br/>
@@ -34,7 +173,8 @@ public interface ITransaction {
      * thrown.<br/>
      * If another transaction's cancellation has invalidated this one, an {@link IllegalStateException} will be thrown.
      */
-    ItemStack confirm();
+    @Nonnull
+    ITransaction confirm();
 
     /**
      * Checks the validity of this transaction.
@@ -46,51 +186,4 @@ public interface ITransaction {
      */
     @Nonnull
     Type getType();
-
-    enum Type {
-
-
-        /**
-         * The inventory transaction succeeded.
-         */
-        SUCCESS,
-
-        /**
-         * When inserting, the inventory is full.
-         * When extracting, the inventory is empty.
-         */
-        FAILURE,
-
-        /**
-         * When inserting, the stack is not can not be inserted.
-         * When extracting, the stack can not be extracted or the filter did not match.
-         */
-        INVALID,
-
-        /**
-         * the transaction was cancelled by a third party
-         */
-        CANCELLED,
-
-        /**
-         * something else :)
-         */
-        UNDEFINED;
-
-        boolean isSuccess(){
-            return this == SUCCESS;
-        }
-
-        boolean isFailure(){
-            return this == FAILURE;
-        }
-
-        boolean isInvalid(){
-            return this == INVALID;
-        }
-
-        boolean isCancelled(){
-            return this == CANCELLED;
-        }
-    }
 }

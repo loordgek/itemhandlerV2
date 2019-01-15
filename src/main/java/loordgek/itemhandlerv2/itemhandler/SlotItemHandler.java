@@ -19,9 +19,7 @@ public class SlotItemHandler extends Slot {
 
     @Override
     public boolean isItemValid(ItemStack stack) {
-        ITransaction transaction = getItemHandler().insert(getSlotIndex(), stack, true);
-        transaction.cancel();
-        return !transaction.getType().isInvalid();
+        return getItemHandler().insert(getSlotIndex(), stack).cancel().getType().isInvalid();
     }
 
     @Override
@@ -30,10 +28,9 @@ public class SlotItemHandler extends Slot {
         return getItemHandler().getStackInSlot(getSlotIndex());
     }
 
-
     @Override
     public void putStack(@Nonnull ItemStack stack) {
-        getItemHandler().insert(getSlotIndex(), stack, true).confirm();
+        getItemHandler().setStack(getSlotIndex(), stack).confirm();
     }
 
     @Override
@@ -44,23 +41,21 @@ public class SlotItemHandler extends Slot {
     @Override
     @Nonnull
     public ItemStack decrStackSize(int amount) {
-        return getItemHandler().extract(getSlotIndex(), amount).confirm();
+        return getItemHandler().extract(getSlotIndex(), amount).confirm().getResult();
     }
 
     @Override
-    public boolean isHere(IInventory inv, int slotIn) {
+    public boolean isHere(@Nonnull IInventory inv, int slotIn) {
         return false;
     }
 
     @Override
-    public boolean canTakeStack(EntityPlayer playerIn) {
-        ITransaction transaction = getItemHandler().extract(getSlotIndex() , 1);
-        transaction.cancel();
-        return !transaction.getType().isInvalid();
+    public boolean canTakeStack(@Nonnull EntityPlayer playerIn) {
+        return getItemHandler().extract(getSlotIndex(), 1).cancel().getType().isInvalid();
     }
 
     @Override
-    public boolean isSameInventory(Slot other)     {
+    public boolean isSameInventory(Slot other) {
         return other instanceof SlotItemHandler && ((SlotItemHandler) other).getItemHandler() == this.getItemHandler();
     }
 

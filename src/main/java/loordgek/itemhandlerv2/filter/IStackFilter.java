@@ -3,7 +3,6 @@ package loordgek.itemhandlerv2.filter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 
-import javax.annotation.Nonnull;
 import java.util.function.Predicate;
 
 @FunctionalInterface
@@ -13,7 +12,7 @@ public interface IStackFilter extends Predicate<ItemStack> {
     @Override
     boolean test(ItemStack stack);
 
-    default NonNullList<ItemStack> getExamples(){
+    default NonNullList<ItemStack> getExamples() {
         return emptyNNList;
     }
 }

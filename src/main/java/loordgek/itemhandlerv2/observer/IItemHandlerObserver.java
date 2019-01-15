@@ -1,25 +1,11 @@
 package loordgek.itemhandlerv2.observer;
 
+import it.unimi.dsi.fastutil.ints.IntSet;
 import loordgek.itemhandlerv2.itemhandler.IItemHandler;
-import net.minecraft.item.ItemStack;
-
-import javax.annotation.Nonnull;
 
 @FunctionalInterface
 public interface IItemHandlerObserver {
 
-    void onInventoryChanged(IItemHandler handler, int slot, @Nonnull ItemStack oldStack, @Nonnull ItemStack newStack, Flow flow);
+    void onInventoryChanged(IItemHandler handler, IntSet slots);
 
-    enum Flow{
-        INSERT,
-        EXTRACT;
-
-        public boolean onInsert(){
-            return this == INSERT;
-        }
-
-        public boolean onExtract(){
-            return this == EXTRACT;
-        }
-    }
 }

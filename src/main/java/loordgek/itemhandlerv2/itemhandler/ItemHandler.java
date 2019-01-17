@@ -46,9 +46,12 @@ public class ItemHandler implements IItemHandler, IItemHandlerObserverble {
 
     @Override
     public ITransaction setStack(int slot, ItemStack stack) {
+        if (stack.isEmpty() && getStackInSlot(slot).isEmpty())
+            return ITransaction.UNDEFINED;
         int limit = Math.min(stack.getCount(), getStackLimit(slot, stack));
 
-        Transaction transaction = new Transaction(stack, limit);
+
+        Transaction transaction = new Transaction(stack, getSlotLimit(slot) - limit);
         transaction.addSlot(slot);
         transaction.addTask(() -> {
             if (stack.isEmpty())
@@ -114,9 +117,12 @@ public class ItemHandler implements IItemHandler, IItemHandlerObserverble {
             }
 
         }
+        if (remainder == 0)
+            transaction.result = ItemStack.EMPTY;
         if (remainder == stack.getCount())
             return ITransaction.FAILURE;
         transaction.growResult(remainder);
+
         return transaction;
     }
 
@@ -151,6 +157,7 @@ public class ItemHandler implements IItemHandler, IItemHandlerObserverble {
         Transaction transaction = new Transaction(ItemStack.EMPTY, 0);
         activeTransaction = transaction;
         boolean foundStack = false;
+        int amountLeft = amount;
         for (int i = 0; i < size(); i++) {
             int slot = i;
             ItemStack stackInSlot = getStackInSlot(slot);
@@ -160,7 +167,8 @@ public class ItemHandler implements IItemHandler, IItemHandlerObserverble {
                 } else if (!ItemHandlerHelper.canItemStacksStack(transaction.result, stackInSlot))
                     continue;
                 foundStack = true;
-                int toExtract = Math.min(stackInSlot.getCount(), amount);
+                int toExtract = Math.min(stackInSlot.getCount(), amountLeft);
+                amountLeft =- toExtract;
                 transaction.growResult(toExtract);
                 transaction.addSlot(slot);
                 transaction.addTask(() -> {
@@ -259,8 +267,8 @@ public class ItemHandler implements IItemHandler, IItemHandlerObserverble {
 
         @Nonnull
         @Override
-        public Type getType() {
-            return Type.SUCCESS;
+        public TransactionType getType() {
+            return TransactionType.SUCCESS;
         }
     }
 }

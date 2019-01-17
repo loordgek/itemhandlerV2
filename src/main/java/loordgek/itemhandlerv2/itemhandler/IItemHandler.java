@@ -33,6 +33,11 @@ public interface IItemHandler extends Iterable<ItemStack> {
                 index++;
                 return stack;
             }
+
+            @Override
+            public void remove() {
+                setStack(index, ItemStack.EMPTY).confirm();
+            }
         };
     }
 

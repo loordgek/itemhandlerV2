@@ -19,7 +19,7 @@ public class SlotItemHandler extends Slot {
 
     @Override
     public boolean isItemValid(ItemStack stack) {
-        return getItemHandler().insert(getSlotIndex(), stack).cancel().getType().isInvalid();
+        return !getItemHandler().insert(getSlotIndex(), stack).cancel().getType().isInvalid();
     }
 
     @Override
@@ -51,7 +51,7 @@ public class SlotItemHandler extends Slot {
 
     @Override
     public boolean canTakeStack(@Nonnull EntityPlayer playerIn) {
-        return getItemHandler().extract(getSlotIndex(), 1).cancel().getType().isInvalid();
+        return !getItemHandler().extract(getSlotIndex(), 1).cancel().getType().isInvalid();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class SlotItemHandler extends Slot {
         return other instanceof SlotItemHandler && ((SlotItemHandler) other).getItemHandler() == this.getItemHandler();
     }
 
-    private IItemHandler getItemHandler() {
+    protected IItemHandler getItemHandler() {
         return handler;
     }
 }

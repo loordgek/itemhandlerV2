@@ -1,6 +1,6 @@
 package loordgek.itemhandlerv2.itemhandler;
 
-public enum Type {
+public enum TransactionType {
 
     /**
      * The inventory transaction succeeded.
